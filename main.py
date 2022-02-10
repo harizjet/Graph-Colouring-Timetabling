@@ -1,54 +1,31 @@
-from graph_coloring import graph_coloring_algo as gca
-from hill_climbing import hill_climbing_algo as hca
+from ConstructiveHeuristics.largest_degree import Constructive_Heuristics
+from Utils import plotting
 
-data1 = '''
-0
-Undergraduate, Graduate, Colloquium, Library, Staffing, Promotion
-12
-Undergraduate, Library
-Undergraduate, Staffing
-Undergraduate
-Undergraduate, Graduate
-Graduate, Staffing
-Graduate, Staffing, Promotion
-Graduate
-Colloquium, Library
-Colloquium, Staffing
-Colloquium
-Library, Promotion
-Promotion
-'''
-
-data2 = '''
-0
-Math, English, Biology, Chemistry, Computer Science,  Geography, History, French, Psychology, Spanish
-7
-Math, English, Biology, Chemistry
-Math, English, Computer Science, Geography
-Biology, Psychology, Geography, Spanish
-Biology, Computer Science, History, French
-English, Psychology, Computer Science, History
-Psychology, Chemistry, Computer Science, French
-Psychology, Geography, History, Spanish
-'''
-
-data3 = '''
-1
-7
-Math, English, Biology, Chemistry
-Math, English, Computer Science, Geography
-Biology, Psychology, Geography, Spanish
-Biology, Computer Science, History, French
-English, Psychology, Computer Science, History
-Psychology, Chemistry, Computer Science, French
-Psychology, Geography, History, Spanish
-'''
 
 if __name__ == '__main__':
-    opt = int(input())
-    if opt == 0:
-        ans, n = gca.solution()
-    elif opt == 1:
-        ans, n = hca.solution()
 
-    print(ans, n, sep='\n')
+    nodes = [input().split(' ') for _ in range(int(input()))]
+    edges = [input() for _ in range(int(input()))]
+
+    roulette_ld = Constructive_Heuristics(nodes, edges, pick_random=False)
+    random_ld = Constructive_Heuristics(nodes, edges, pick_random=True)
+
+    res_roulette_ld = roulette_ld.sampling_result(n=5)
+    res_random_ld = random_ld.sampling_result(n=5)
+
+    best_roulette_ld = min(res_roulette_ld[3])
+    avg_roulette_ld = sum(res_roulette_ld[3]) / len(res_roulette_ld[3])
+    worst_roulette_ld = max(res_roulette_ld[3])
+
+    best_random_ld = min(res_random_ld[3])
+    avg_random_ld = sum(res_random_ld[3]) / len(res_random_ld[3])
+    worst_random_ld = max(res_random_ld[3])
+    
+    # plotting.plot_comparison_result(
+    #     res_roulette_ld[3], "Roulette Largest Degree", best_roulette_ld, avg_roulette_ld, worst_roulette_ld,
+    #     res_random_ld[3], "Random Largest Degree", best_random_ld, avg_random_ld, worst_random_ld
+    #     )
+    
+    plotting.plot_table_result(res_roulette_ld[0], res_roulette_ld[1], res_roulette_ld[2])
+
+    print(avg_roulette_ld, avg_random_ld, sep='\n')
