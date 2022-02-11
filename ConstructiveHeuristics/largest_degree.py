@@ -1,4 +1,3 @@
-from xml.dom.minicompat import NodeList
 from Utils import graph
 from collections import OrderedDict
 from typing import Tuple
@@ -17,11 +16,13 @@ class Constructive_Heuristics(object):
         self.nodes = nodes
         self.edges = edges 
         self.pick_random = pick_random
+        self.optimal_solution_raw = None
         self.best_solution_stud = None 
-        self.best_solution_pans = None
+        self.best_solution_pan = None
+        self.best_solution_sv = None
         self.best_cost = None
 
-    def cost(self, schedule: dict) -> list:
+    def cost(self, schedule: dict, debug=False) -> list:
         """
         Get the cost of the given solution
         """
@@ -37,7 +38,7 @@ class Constructive_Heuristics(object):
             else:
                 group_sch[sch[1].color_class] = [sch[1]]
         
-        # initalized for penalty 2 prob
+        # initalized for penalty 2 and 1 prob
         group_pan = {}
         for sch in schedule.items():
             temp = {sch[1].supervisor}
@@ -49,7 +50,7 @@ class Constructive_Heuristics(object):
                 else:
                     group_pan[pan] = [sch[1]]
 
-        # get the cost for penalty 3
+        # get the total cost
         for sch in schedule.items():
             if sch[1].color == None:
                 continue
@@ -60,27 +61,35 @@ class Constructive_Heuristics(object):
             for neigh in group_sch[sch[1].color_class]:
                 temp = temp.union(set(neigh.panels))
             if sch[1].supervisor in temp:
+                if debug:
+                    print(333)
                 cost += 3
             # penalty 2
             temp = {sch[1].supervisor}
             for pan in sch[1].panels:
                 temp.add(pan)
             for pan in temp:
-                index_sch = np.array([t.color for t in group_pan[pan] if t.color])
+                index_sch = np.array([t.color for t in group_pan[pan] if t.color != None])
                 index_sch = index_sch % 9
                 if (0 in index_sch and 2 in index_sch) or \
                     (3 in index_sch and 5 in index_sch) or \
                         (6 in index_sch and 8 in index_sch):
+                    if debug:
+                        print(222)
                     cost += 2
             # penalty 1
             temp = {sch[1].supervisor}
             for pan in sch[1].panels:
                 temp.add(pan)
             for pan in temp:
-                index_sch = np.array([t.color for t in group_pan[pan] if t.color])
+                index_sch = np.array([t.color for t in group_pan[pan] if t.color != None])
                 index_sch = index_sch % 9
                 tmp_count = index_sch // 3
-                if len(tmp_count) == len(set(tmp_count)):
+                if debug:
+                    print(index_sch, tmp_count, pan, 1111111)
+                if len(tmp_count) == len(set(tmp_count)) and len(tmp_count) != 1:
+                    if debug:
+                        print(111)
                     cost += 1
 
             cost_list[sch[1].color] = cost
@@ -152,7 +161,9 @@ class Constructive_Heuristics(object):
             selNode = nodes_col[tmp[0]]
 
             # get the lists of color that yet to be used and not match with neighbors
-            connCol = {node.color for node in selNode.connected_nodes if node.color}
+            connCol = np.array(list({node.color for node in selNode.connected_nodes if node.color != None}))
+            connCol = np.hstack((connCol % 9, connCol % 9 + 9))
+            connCol = set(connCol)
             diffCol = avai_colors.difference(connCol)
 
             # pick class
@@ -160,29 +171,39 @@ class Constructive_Heuristics(object):
                 col = np.random.choice(list(diffCol), 1)[0]
             else:
                 col = self.roulette_wheel_selection(diffCol, nodes_col, selNode, slots_init)
-            
+
             avai_colors.remove(col)
             selNode.set_color(col, slots_init[col])
 
-        # get the result
+        # save the result
+        optimal_solution_raw = copy.deepcopy(nodes_col)
         optimal_sol_stud = {k: v.color_class for k, v in nodes_col.items()}
-        optimal_sol_pans = {}
+        optimal_sol_pan = {}
+        optimal_sol_sv = {}
         for stud in nodes_col.values():
             for pan in stud.panels:
-                if pan in optimal_sol_pans.keys():
-                    optimal_sol_pans[pan].append(stud.color_class)
+                if pan in optimal_sol_pan.keys():
+                    optimal_sol_pan[pan].append(stud.color_class)
                 else:
-                    optimal_sol_pans[pan] = [stud.color_class]
+                    optimal_sol_pan[pan] = [stud.color_class]
+            sv = stud.supervisor
+            if sv in optimal_sol_sv.keys():
+                optimal_sol_sv[sv].append(stud.color_class)
+            else:
+                optimal_sol_sv[sv] = [stud.color_class]
+        
         optimal_cost = sum(self.cost(nodes_col))
 
         # save the better result
-        if not self.best_cost or self.best_cost > optimal_cost:
+        if self.best_cost == None or self.best_cost > optimal_cost:
+            self.optimal_solution_raw = copy.deepcopy(optimal_solution_raw)
             self.best_solution_stud = optimal_sol_stud
-            self.best_solution_pans = optimal_sol_pans
+            self.best_solution_pan = optimal_sol_pan
+            self.best_solution_sv = optimal_sol_sv
             self.best_cost = optimal_cost
             
         # return the result
-        return optimal_sol_stud, optimal_sol_pans, optimal_cost
+        return optimal_sol_stud, optimal_sol_pan, optimal_sol_sv, optimal_cost
 
     def sampling_result(self, n=100) -> Tuple[list, int, list]:
         """
@@ -192,8 +213,8 @@ class Constructive_Heuristics(object):
         results = []
         for _ in range(n):
             result = self.solution()
-            results.append(result[2])
-
-        return self.best_solution_stud, self.best_solution_pans, self.best_cost, results
+            results.append(result[3])
+        self.cost(self.optimal_solution_raw, debug=True)
+        return self.best_solution_stud, self.best_solution_pan, self.best_solution_sv, self.best_cost, results
 
 

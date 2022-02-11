@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import re
 
 
-def plot_table_result(schedule_group_stud: dict, schedule_group_pans: dict, score: int) -> None:
+def plot_table_result_stud_pan(schedule_group_stud: dict, schedule_group_pan: dict, score: int) -> None:
     """
     Table of the best group created
     """
@@ -22,16 +22,15 @@ def plot_table_result(schedule_group_stud: dict, schedule_group_pans: dict, scor
         default_col[position] = 'lightsteelblue'
         cell_colour_stud.append(default_col)
 
-    cell_colour_pans = []
-    clean_schedule_pans = [[int(re.search(r'\d+', stu).group()), cls] for stu, cls in schedule_group_pans.items()]
-    clean_schedule_pans.sort(key=lambda x: x[0])
-    print(clean_schedule_pans)
-    for infos in clean_schedule_pans:
+    cell_colour_pan = []
+    clean_schedule_pan = [[int(re.search(r'\d+', stu).group()), cls] for stu, cls in schedule_group_pan.items()]
+    clean_schedule_pan.sort(key=lambda x: x[0])
+    for infos in clean_schedule_pan:
         default_col = ['white' for _ in range(9)]
         for info in infos[1]:
             position = class_map[info]
             default_col[position] = 'lightsteelblue'
-        cell_colour_pans.append(default_col)
+        cell_colour_pan.append(default_col)
 
     fig, axes = plt.subplots(figsize=(15, 7), nrows=2, ncols=1)
 
@@ -44,24 +43,86 @@ def plot_table_result(schedule_group_stud: dict, schedule_group_pans: dict, scor
         colLabels=['Day 1 Slot 1', 'Day 1 Slot 2', 'Day 1 Slot 3', 'Day 2 Slot 1', 'Day 2 Slot 2', 'Day 2 Slot 3', 'Day 3 Slot 1', 'Day 3 Slot 2', 'Day 3 Slot 3'], 
         colColours=['aquamarine' for _ in range(9)],
         loc='center')
-    table1.auto_set_font_size(False)
-    table1.set_fontsize(17)
     axes[0].axis("off")
-    axes[0].set_title('Best Group Created for Students with quality score of {}'.format(score))
+    axes[0].set_title('Best Schedule Created for Students with quality score of {}'.format(score))
 
     axes[1].xaxis.set_visible(False) 
     axes[1].yaxis.set_visible(False)
     table2 = axes[1].table(
-        cellColours=cell_colour_pans, 
+        cellColours=cell_colour_pan, 
         rowLabels=['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10'], 
         rowColours=['aquamarine' for _ in range(10)], 
         colLabels=['Day 1 Slot 1', 'Day 1 Slot 2', 'Day 1 Slot 3', 'Day 2 Slot 1', 'Day 2 Slot 2', 'Day 2 Slot 3', 'Day 3 Slot 1', 'Day 3 Slot 2', 'Day 3 Slot 3'], 
         colColours=['aquamarine' for _ in range(9)],
         loc='center')
-    table2.auto_set_font_size(False)
-    table2.set_fontsize(17)
     axes[1].axis("off")
-    axes[1].set_title('Best Group Created for Panels with quality score of {}'.format(score))
+    axes[1].set_title('Best Schedule Created for Panels with quality score of {}'.format(score))
+
+    plt.show();
+
+def plot_table_result_pans_sv(schedule_group_pan: dict, schedule_group_sv: dict, score: int) -> None:
+    """
+    Table of the best group created
+    """
+    
+    class_map = {
+        'D1 S1': 0, 'D1 S2': 1, 'D1 S3': 2,
+        'D2 S1': 3, 'D2 S2': 4, 'D2 S3': 5,
+        'D3 S1': 6, 'D3 S2': 7, 'D3 S3': 8,
+    }
+
+    cell_colour_pan_sv = []
+    clean_schedule_pan = [[int(re.search(r'\d+', stu).group()), cls] for stu, cls in schedule_group_pan.items()]
+    clean_schedule_pan.sort(key=lambda x: x[0])
+    clean_schedule_sv = [[int(re.search(r'\d+', stu).group()), cls] for stu, cls in schedule_group_sv.items()]
+    clean_schedule_sv.sort(key=lambda x: x[0])
+    for infos in clean_schedule_pan:
+        default_col = ['white' for _ in range(9)]
+        for info in infos[1]:
+            position = class_map[info]
+            default_col[position] = 'lightsteelblue'
+        cell_colour_pan_sv.append(default_col)
+    for infos in clean_schedule_sv:
+        for info in infos[1]:
+            position = class_map[info]
+            cell_colour_pan_sv[infos[0]-1][position] = 'lightsteelblue'
+        
+
+    cell_colour_sv = []
+    clean_schedule_sv = [[int(re.search(r'\d+', stu).group()), cls] for stu, cls in schedule_group_sv.items()]
+    clean_schedule_sv.sort(key=lambda x: x[0])
+    for infos in clean_schedule_sv:
+        default_col = ['white' for _ in range(9)]
+        for info in infos[1]:
+            position = class_map[info]
+            default_col[position] = 'lightsteelblue'
+        cell_colour_sv.append(default_col)
+
+    fig, axes = plt.subplots(figsize=(15, 7), nrows=2, ncols=1)
+
+    axes[0].xaxis.set_visible(False) 
+    axes[0].yaxis.set_visible(False)
+    table1 = axes[0].table(
+        cellColours=cell_colour_pan_sv, 
+        rowLabels=['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10'], 
+        rowColours=['aquamarine' for _ in range(10)], 
+        colLabels=['Day 1 Slot 1', 'Day 1 Slot 2', 'Day 1 Slot 3', 'Day 2 Slot 1', 'Day 2 Slot 2', 'Day 2 Slot 3', 'Day 3 Slot 1', 'Day 3 Slot 2', 'Day 3 Slot 3'], 
+        colColours=['aquamarine' for _ in range(9)],
+        loc='center')
+    axes[0].axis("off")
+    axes[0].set_title('Best Schedule Created for Panel and Supervisor Tasks with quality score of {}'.format(score))
+
+    axes[1].xaxis.set_visible(False) 
+    axes[1].yaxis.set_visible(False)
+    table2 = axes[1].table(
+        cellColours=cell_colour_sv, 
+        rowLabels=['A1', 'A2', 'A3', 'A4', 'A7', 'A9', 'A10'], 
+        rowColours=['aquamarine' for _ in range(7)], 
+        colLabels=['Day 1 Slot 1', 'Day 1 Slot 2', 'Day 1 Slot 3', 'Day 2 Slot 1', 'Day 2 Slot 2', 'Day 2 Slot 3', 'Day 3 Slot 1', 'Day 3 Slot 2', 'Day 3 Slot 3'], 
+        colColours=['aquamarine' for _ in range(9)],
+        loc='center')
+    axes[1].axis("off")
+    axes[1].set_title('Best Schedule Created for Supervisors with quality score of {}'.format(score))
 
     plt.show();
 
