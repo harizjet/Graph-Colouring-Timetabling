@@ -3,7 +3,7 @@
 <div >
     <h2>Objective</h2>
     <ol>
-        <li>Be able to schedule the timetable with less cost</li>
+        <li>Be able to construct a timetable the most efficient way</li>
     <ol>
 </div>
 
